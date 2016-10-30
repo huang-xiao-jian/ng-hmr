@@ -1,0 +1,28 @@
+# eslint configuration
+parserOptions:
+  ecmaVersion: 6
+  sourceType: module
+env:
+  browser: true
+  es6: true
+  jasmine: true
+extends:
+  - 'eslint:recommended'
+  - 'angular'
+#globals:
+plugins:
+  - angular
+rules:
+  indent:
+    - error
+    - 2
+    - SwitchCase: 1
+  linebreak-style:
+    - error
+    - unix
+  quotes:
+    - error
+    - single
+  semi:
+    - error
+    - always

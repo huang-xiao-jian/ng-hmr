@@ -1,0 +1,40 @@
+{
+  "name": "ng-hmr",
+  "version": "0.1.0",
+  "description": "cooperate with ng-hot-loader, make NG HMR possible",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bornkiller/ng-hmr.git"
+  },
+  "keywords": [
+    "HMR"
+  ],
+  "author": "bornkiller <hjj491229492@hotmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bornkiller/ng-hmr/issues"
+  },
+  "homepage": "https://github.com/bornkiller/ng-hmr#readme",
+  "peerDependencies": {
+    "angular": "^1.5.x",
+    "lodash": "^4.16.x"
+  },
+  "devDependencies": {
+    "babel-preset-es2015-rollup": "^1.2.0",
+    "eslint": "^3.9.0",
+    "eslint-config-angular": "^0.5.0",
+    "eslint-plugin-angular": "^1.4.1",
+    "rollup": "^0.36.3",
+    "rollup-plugin-babel": "^2.6.1",
+    "rollup-plugin-commonjs": "^5.0.5",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rollup-watch": "^2.5.0"
+  },
+  "dependencies": {
+    "@bornkiller/observable": "^0.2.0"
+  }
+}
