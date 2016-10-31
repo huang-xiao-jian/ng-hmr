@@ -1,5 +1,6 @@
 'use strict';
 
+import angular from 'angular';
 import { HMRStateProviderConfig, HMRProvider } from './src/hmr.cooperation';
 
 const HMR_MODULE = 'ng-hmr';

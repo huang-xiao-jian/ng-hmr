@@ -4,6 +4,7 @@
  */
 'use strict';
 
+import angular from 'angular';
 import { omit } from 'lodash';
 import { has } from 'lodash';
 import { chain } from 'lodash';

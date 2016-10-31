@@ -25,6 +25,7 @@ export default {
     lodash: '_'
   },
   targets: [
-    {format: 'umd', dest: 'dist/index.js'}
+    {format: 'iife', dest: 'dist/ng-hmr.js'},
+    {format: 'es', dest: 'dist/ng-hmr.next.js'}
   ]
 };
