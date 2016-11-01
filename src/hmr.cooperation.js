@@ -73,7 +73,7 @@ export /* @ngInject */ function HMRProvider() {
       let target = document.querySelector(selector);
       let scope = angular.element(target).scope();
       let prevVM = scope.vm;
-      let nextVM = $injector.instantiate(controller);
+      let nextVM = $injector.instantiate(controller, {$scope: scope});
       let toString = Object.prototype.toString;
       
       // 假设所有关联属性在constructor内部声明,变量类型不变
