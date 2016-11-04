@@ -4,99 +4,97 @@
  */
 'use strict';
 
-import angular from 'angular';
-import { omit } from 'lodash';
-import { has } from 'lodash';
-import { chain } from 'lodash';
+import { omit, isEmpty } from 'lodash';
 import { Observable } from '@bornkiller/observable';
 
+import { analyzeModalIdentity, resolveModalClass } from './hmr.warrior';
+import { updateModalTemplate, updateModalController, updateViewTemplate, updateViewController } from './hmr.worker';
+
+/**
+ * @description - provide core $hmr service
+ */
 /* eslint-disable angular/document-service, angular/angularelement */
 export /* @ngInject */ function HMRProvider() {
   const Storage = new Map();
-  
+  const ModalStorage = new Map();
+
   this.register = register;
-  this.pick = pick;
-  
+  this.storage = Storage;
+  this.modalStorage = ModalStorage;
+
   // name = state.name + views.name + template / controller
   function register(name) {
     Storage.set(name, new Observable());
   }
-  
-  function pick(name) {
-    return Storage.get(name);
-  }
-  
-  this.$get = ['$injector', '$compile', '$state', function ($injector, $compile, $state) {
+
+  this.$get = ['$injector', '$compile', '$controller', '$timeout', '$state', '$uibResolve', function ($injector, $compile, $controller, $timeout, $state, $uibResolve) {
     return {
-      notify
+      notify,
+      update
     };
-    
+
+    /**
+     * @description - HMR modal implement
+     *
+     * @param hotModalModule
+     * @param {string} hotModalType - template or controller
+     */
+    function update(hotModalModule, hotModalType) {
+      if (hotModalType == 'template') {
+        let modalTemplateIdentity = analyzeModalIdentity(hotModalModule);
+
+        ModalStorage.set(modalTemplateIdentity, {template: hotModalModule});
+        updateModalTemplate($compile, hotModalModule);
+      } else {
+        // update modal controller options
+        let modalControllerIdentity = analyzeModalIdentity(hotModalModule);
+        let modalInstanceIdentity = `${modalControllerIdentity}-instance`;
+        let modalResolveIdentity = `${modalControllerIdentity}-resolve`;
+
+        let $uibModalInstance = ModalStorage.get(modalInstanceIdentity);
+        let modalResolveOptions = ModalStorage.get(modalResolveIdentity);
+
+        ModalStorage.set(modalControllerIdentity, {controller: hotModalModule});
+
+        if (isEmpty(modalResolveOptions)) {
+          updateModalController($controller, {$uibModalInstance: $uibModalInstance}, hotModalModule);
+        } else {
+          $uibResolve.resolve(modalResolveOptions).then(locals => {
+            $timeout(() => {
+              updateModalController($controller, {...locals, $uibModalInstance: $uibModalInstance}, hotModalModule);
+            }, 1);
+          });
+        }
+      }
+    }
+
+    // HMR route implement
     function notify(name, hotModule) {
       let observable = Storage.get(name);
       let [stateName, viewName, hotModuleType] = name.split('_');
-      
+
       // 需要判定匹配目标是否处于激活状态
       if ($state.includes(stateName)) {
-        hotModuleType === 'template' ? hotUpdateView(viewName, hotModule) : hotUpdateController(viewName, hotModule);
+        hotModuleType === 'template' ? updateViewTemplate($compile, viewName, hotModule) : updateViewController($injector, viewName, hotModule);
       }
-      
+
       // 此处修改router声明, reload的时候才会生效,使之符合HMR原则
       observable.next(hotModule);
-    }
-    
-    function hotUpdateView(viewName, template) {
-      let selector = `[ui-view=${viewName}]`;
-      let target = angular.element(document.querySelector(selector));
-      let scope = target.scope();
-      let middleware = $compile(template)(scope);
-      let subViewTargets = middleware.find('[ui-view]');
-      
-      if (subViewTargets.length) {
-        let subViewSelectors = subViewTargets.map(function () {
-          let subViwName = $(this).attr('ui-view');
-          
-          return `[ui-view=${subViwName}]`;
-        }).toArray();
-        
-        middleware = subViewSelectors.reduce(function (prev, selector) {
-          prev.find(selector).replaceWith($(selector));
-          
-          return prev;
-        }, middleware);
-      }
-      
-      target.empty().append(middleware);
-    }
-    
-    function hotUpdateController(viewName, controller) {
-      let selector = `[ui-view=${viewName}]`;
-      let target = document.querySelector(selector);
-      let scope = angular.element(target).scope();
-      let prevVM = scope.vm;
-      let nextVM = $injector.instantiate(controller, {$scope: scope});
-      let toString = Object.prototype.toString;
-      
-      // 假设所有关联属性在constructor内部声明,变量类型不变
-      chain(nextVM).keys().value().forEach(key => {
-        if (!has(prevVM, key) || toString.call(prevVM[key]) !== toString.call(nextVM[key])) {
-          prevVM[key] = nextVM[key];
-        }
-      });
-      
-      chain(Object.getOwnPropertyNames(nextVM.__proto__)).filter(key => key !== 'constructor').value().forEach(key => {
-        prevVM.__proto__[key] = nextVM.__proto__[key];
-      });
-      
-      scope.$apply();
     }
   }];
 }
 
+/**
+ * @description - decorate route definition, prepare for HMR
+ *
+ * @param $stateProvider
+ * @param $hmrProvider
+ */
 export /* @ngInject */ function HMRStateProviderConfig($stateProvider, $hmrProvider) {
   $stateProvider.decorator('views', function (state, $delegate) {
     let target = {};
     let views = $delegate(state);
-    
+
     angular.forEach(views, (config, viewName) => {
       let middleware = omit(config, ['template', 'controller']);
       let templateAccessorToken = `${state.name}_${viewName}_template`;
@@ -105,29 +103,71 @@ export /* @ngInject */ function HMRStateProviderConfig($stateProvider, $hmrProvi
         template: config.template,
         controller: config.controller
       };
-      
+
       $hmrProvider.register(templateAccessorToken);
       $hmrProvider.register(controllerAccessorToken);
-      
-      $hmrProvider.pick(templateAccessorToken).subscribe(template => {
+
+      $hmrProvider.storage.get(templateAccessorToken).subscribe(template => {
         mirror.template = template;
       });
-      
-      $hmrProvider.pick(controllerAccessorToken).subscribe(controller => {
+
+      $hmrProvider.storage.get(controllerAccessorToken).subscribe(controller => {
         mirror.controller = controller;
       });
-      
+
       middleware.templateProvider = function () {
         return mirror.template;
       };
-      
+
       middleware.controllerProvider = function () {
         return mirror.controller;
       };
-      
+
       target[viewName] = middleware;
     });
-    
+
     return target;
   });
+}
+
+/**
+ * @description - decorate modal service, prepare for HMR
+ *
+ * @param $provide
+ * @param $hmrProvider
+ */
+export /* @ngInject */ function HMRModalDecoratorConfig($provide, $hmrProvider) {
+  $provide.decorator('$uibModal', ['$delegate', function ($delegate) {
+    return {
+      ...$delegate,
+      open: HMRModalOpen
+    };
+
+    function HMRModalOpen(options) {
+      let {template, controller, windowClass} = options;
+      let modalTemplateIdentity = analyzeModalIdentity(template);
+      let modalControllerIdentity = analyzeModalIdentity(controller);
+      let hmrModalWindowClass = resolveModalClass(windowClass, [modalTemplateIdentity, modalControllerIdentity]);
+
+      let hmrModalTemplate = $hmrProvider.modalStorage.get(modalTemplateIdentity) || {template};
+      let hmrModalController = $hmrProvider.modalStorage.get(modalControllerIdentity) || {controller};
+
+      options = {...options, ...hmrModalTemplate, ...hmrModalController, ...hmrModalWindowClass};
+
+      let modalInstance = $delegate.open(options);
+      let modalInstanceIdentity = `${modalControllerIdentity}-instance`;
+      let modalResolveIdentity = `${modalControllerIdentity}-resolve`;
+
+      $hmrProvider.modalStorage.set(modalInstanceIdentity, modalInstance);
+      $hmrProvider.modalStorage.set(modalResolveIdentity, options.resolve || {});
+
+      modalInstance.result.then(() => {
+        $hmrProvider.modalStorage.delete(modalInstanceIdentity);
+      }, () => {
+        $hmrProvider.modalStorage.delete(modalInstanceIdentity);
+      });
+
+      return modalInstance;
+    }
+  }]);
 }
