@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "description": "cooperate with ng-hot-loader, make NG HMR possible",
   "main": "dist/ng-hmr.js",
-  "jsnext:main": "dist/ng-hmr.next.js",
+  "jsnext:main": "index.js",
   "scripts": {
     "prepublish": "rollup -c rollup.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -26,6 +26,7 @@
     "lodash": "^4.16.x"
   },
   "devDependencies": {
+    "babel-eslint": "^7.1.0",
     "babel-preset-es2015-bk": "^1.0.0",
     "eslint": "^3.9.0",
     "eslint-config-angular": "^0.5.0",
