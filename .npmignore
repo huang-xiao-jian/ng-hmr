@@ -45,3 +45,4 @@ jspm_packages
 karma.*.js
 rollup.*.js
 /test/*.bundle.js
+.idea
