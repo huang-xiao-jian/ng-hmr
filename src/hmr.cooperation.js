@@ -8,7 +8,14 @@ import { omit, isEmpty } from 'lodash';
 import { Observable } from '@bornkiller/observable';
 
 import { analyzeModalIdentity, resolveModalClass } from './hmr.warrior';
-import { updateModalTemplate, updateModalController, updateViewTemplate, updateViewController } from './hmr.worker';
+import {
+  updateModalTemplate,
+  updateModalController,
+  updateViewTemplate,
+  updateViewController,
+  updateViewFilter,
+  updateViewInstance
+} from './hmr.worker';
 
 /**
  * @description - provide core $hmr service
@@ -17,21 +24,46 @@ import { updateModalTemplate, updateModalController, updateViewTemplate, updateV
 export /* @ngInject */ function HMRProvider() {
   const Storage = new Map();
   const ModalStorage = new Map();
+  const PipeStorage = new Map();
 
   this.register = register;
   this.storage = Storage;
   this.modalStorage = ModalStorage;
+  this.pipeStorage = PipeStorage;
 
   // name = state.name + views.name + template / controller
   function register(name) {
     Storage.set(name, new Observable());
   }
 
-  this.$get = ['$injector', '$compile', '$controller', '$timeout', '$state', '$uibResolve', function ($injector, $compile, $controller, $timeout, $state, $uibResolve) {
+  this.$get = ['$injector', '$compile', '$controller', '$timeout', '$state', '$uibResolve', '$parse', function ($injector, $compile, $controller, $timeout, $state, $uibResolve, $parse) {
     return {
       notify,
-      update
+      update,
+      through,
+      override
     };
+
+    /**
+     * @description - HMR filter implement
+     *
+     * @param {string} name
+     * @param {function} implement
+     */
+    function through(name, implement) {
+      PipeStorage.set(`${name}Filter`, implement);
+      updateViewFilter($parse, name);
+    }
+
+    /**
+     * @description - HMR factory / service implement
+     *
+     * @param {string} name
+     * @param {object} instance
+     */
+    function override(name, instance) {
+      updateViewInstance($injector, name, instance);
+    }
 
     /**
      * @description - HMR modal implement
@@ -82,6 +114,33 @@ export /* @ngInject */ function HMRProvider() {
       observable.next(hotModule);
     }
   }];
+}
+
+/**
+ * @description - decorate $injector instance, prepare for HMR
+ *
+ * @param $provide
+ * @param $hmrProvider
+ */
+export /* @ngInject */ function HMRInjectorDecoratorConfig($provide, $hmrProvider) {
+  $provide.decorator('$injector', ['$delegate', function ($delegate) {
+    let previousInjectorGet = $delegate.get;
+
+    $delegate.get = function (name) {
+      let instance = previousInjectorGet(name);
+
+      if (name.endsWith('Filter')) {
+        return (...args) => {
+          let proxy = $hmrProvider.pipeStorage.get(name);
+
+          return angular.isFunction(proxy)? proxy(...args) : instance(...args);
+        };
+      }
+      return instance;
+    };
+
+    return $delegate;
+  }]);
 }
 
 /**

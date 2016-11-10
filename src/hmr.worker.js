@@ -4,10 +4,61 @@
  */
 'use strict';
 
-import { chain, has } from 'lodash';
-import { analyzeModalIdentity, huntRootModalSelector, huntChildModalSelector } from './hmr.warrior';
+import { chain, first, has } from 'lodash';
+
+import {
+  analyzeModalIdentity,
+  huntRootModalSelector,
+  huntChildModalSelector,
+  iterateViewValue
+} from './hmr.warrior';
 
 /* eslint-disable angular/document-service, angular/angularelement */
+
+/**
+ * @description - update view service
+ *
+ * @param {object} $injector - Angular DI private
+ * @param {string} name - register service name
+ * @param {object} instance -hot service instance
+ */
+export function updateViewInstance($injector, name, instance) {
+  let targetService = $injector.get(name);
+  var $rootScope = $injector.get('$rootScope');
+
+  angular.extend(targetService, instance);
+  $rootScope.$apply();
+}
+
+/**
+ * @description - update view filter
+ *
+ * @param {function} $parse - Angular DI private
+ * @param {string} name - register filter name
+ */
+export function updateViewFilter($parse, name) {
+  let targets;
+
+  targets = $(`[ng-bind*=${name}]`).map(function() {
+    return {
+      scope: angular.element(this).scope(),
+      target: angular.element(this)
+    };
+  }).toArray();
+
+  targets.forEach(function ({scope, target}) {
+    let binding = first(target.attr('ng-bind').split('|'));
+    let getter = $parse(binding);
+    let setter = getter.assign;
+
+    let last = getter(scope);
+
+    setter(scope, iterateViewValue(last));
+    scope.$apply();
+    setter(scope, last);
+    scope.$apply();
+  });
+}
 
 /**
  * @description - update modal instance template
@@ -126,4 +177,3 @@ export function updateViewController($injector, viewName, controller) {
 
   scope.$apply();
 }
-
