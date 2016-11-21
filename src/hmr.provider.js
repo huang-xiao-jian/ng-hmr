@@ -6,6 +6,7 @@
 'use strict';
 
 import { Observable } from '@bornkiller/observable';
+import { hmrThroughFactory } from './worker/hmr.factory';
 import { hmrThroughFilter} from './worker/hmr.filter';
 
 export /* @ngInject */ function HMRProvider() {
@@ -43,7 +44,7 @@ export /* @ngInject */ function HMRProvider() {
           PipeStorage.set(`${token}Filter`, $injector.invoke(implement));
           break;
         case 'Factory':
-          InstanceStorage.set(token, implement);
+          InstanceStorage.set(token, $injector.invoke(implement));
           break;
         case 'Controller':
           ControllerStorage.set(token, implement);
@@ -69,7 +70,11 @@ export /* @ngInject */ function HMRProvider() {
         case 'Filter':
           hmrThroughFilter($injector, token);
           break;
+        case 'Factory':
+          hmrThroughFactory($injector, token, implement);
+          break;
         default:
+          // eslint-disable-next-line
           console.log('what the hell');
       }
     }
