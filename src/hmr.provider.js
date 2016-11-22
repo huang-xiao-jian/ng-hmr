@@ -6,7 +6,6 @@
 'use strict';
 
 import { Observable } from '@bornkiller/observable';
-import { hmrThroughFactory } from './worker/hmr.factory';
 import { hmrThroughFilter} from './worker/hmr.filter';
 
 export /* @ngInject */ function HMRProvider() {
@@ -24,8 +23,9 @@ export /* @ngInject */ function HMRProvider() {
   this.routeStorage = RouteStorage;
   this.pipeStorage = PipeStorage;
   this.modalStorage = ModalStorage;
+  this.instanceStorage = InstanceStorage;
 
-  this.$get = ['$injector', function ($injector) {
+  this.$get = ['$injector', '$rootScope', function ($injector, $rootScope) {
     return {
       hmrOnTransfer,
       hmrOnStore
@@ -59,23 +59,18 @@ export /* @ngInject */ function HMRProvider() {
     }
 
     /**
-     * @description - take hot effect
+     * @description - take hot effect, filter need re-compile, while factory, service not
      *
      * @param {string} category - angular component type, like filter, factory, route
      * @param {string} token - angular component access token
-     * @param {function} implement - angular component next implement
      */
-    function hmrOnStore(category, token, implement) {
+    function hmrOnStore(category, token) {
       switch (category) {
         case 'Filter':
           hmrThroughFilter($injector, token);
           break;
-        case 'Factory':
-          hmrThroughFactory($injector, token, implement);
-          break;
         default:
-          // eslint-disable-next-line
-          console.log('what the hell');
+          $rootScope.$apply();
       }
     }
   }];

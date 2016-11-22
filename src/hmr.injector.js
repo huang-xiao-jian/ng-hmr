@@ -22,19 +22,70 @@ export /* @ngInject */ function HMRInjectorDecorator($provide, $hmrProvider) {
         case name.endsWith('Filter'):
           next = proxyHmrFilter(name);
           break;
+        case name.endsWith('Directive'):
+          next = proxyHmrDirective(name);
+          break;
+        default:
+          next = proxyHmrInstance(name);
       }
 
       return next;
     };
 
+    /**
+     * @description - use proxy mode for factory / service implement
+     *
+     * @param {string} name - angular component access token
+     *
+     * @return {object}
+     */
+    function proxyHmrInstance(name) {
+      // pass through angular private, third-lib instance
+      if (name.startsWith('$')) {
+        return previous(name);
+      }
+
+      let instance = previous(name);
+      let handler = {
+        get(target, key) {
+          let hmrInstance = $hmrProvider.instanceStorage.get(name);
+
+          return hmrInstance ? Reflect.get(hmrInstance, key) : Reflect.get(target, key);
+        }
+      };
+
+      return new Proxy(instance, handler);
+    }
+
+    /**
+     * @description - use proxy mode for filter implement
+     *
+     * @param {string} name - angular component access token
+     *
+     * @return {function(...[*])}
+     */
     function proxyHmrFilter(name) {
       let instance = previous(name);
+      let handler = {
+        apply(target, context, args) {
+          let hmrFilter = $hmrProvider.pipeStorage.get(name);
 
-      return (...args) => {
-        let proxy = $hmrProvider.pipeStorage.get(name);
-
-        return angular.isFunction(proxy) ? proxy(...args) : instance(...args);
+          return angular.isFunction(hmrFilter) ? Reflect.apply(hmrFilter, context, args) : Reflect.apply(target, context, args);
+        }
       };
+
+      return new Proxy(instance, handler);
+    }
+
+    /**
+     * @description - use proxy mode for directive implement, not sure
+     *
+     * @param {string} name - angular component access token
+     *
+     * @return {object}
+     */
+    function proxyHmrDirective(name) {
+      return previous(name);
     }
 
     return $delegate;
