@@ -23,6 +23,15 @@ export /* @ngInject */ function HMRRouteConfig($stateProvider, $hmrProvider) {
 
             hmrTemplate && (value = hmrTemplate);
           }
+
+          if (key === 'controller' && value) {
+            let routeLinkTemplate = Reflect.get(target, 'template');
+            let hmrController = $hmrProvider.routeStorage.get(value.ng_hmr_identity);
+
+            $hmrProvider.routeLinkStorage.set(value.ng_hmr_identity, hmrIdentityCaptureReg.exec(routeLinkTemplate)[1]);
+            hmrController && (value = hmrController);
+          }
+
           return value;
         }
       };

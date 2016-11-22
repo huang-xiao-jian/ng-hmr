@@ -7,6 +7,7 @@
 
 import { hmrThroughFilter} from './worker/hmr.filter';
 import { hmrThroughTemplate } from './worker/hmr.template';
+import { hmrThroughController } from './worker/hmr.controller';
 import { hmrIdentityCaptureReg } from './util/hmr.reg';
 
 export /* @ngInject */ function HMRProvider() {
@@ -14,6 +15,7 @@ export /* @ngInject */ function HMRProvider() {
   // RouteStorage => manage route, PipeStorage => manage pipe, ModalStorage => manage modal
   // store ultimate mode
   const RouteStorage = new Map();
+  const RouteLinkStorage =new Map();
   const PipeStorage = new Map();
   // support explicit controller only, angular.module().controller('', SomeController)
   const ControllerStorage = new Map();
@@ -21,6 +23,7 @@ export /* @ngInject */ function HMRProvider() {
   const ModalStorage = new Map();
 
   this.routeStorage = RouteStorage;
+  this.routeLinkStorage = RouteLinkStorage;
   this.pipeStorage = PipeStorage;
   this.modalStorage = ModalStorage;
   this.instanceStorage = InstanceStorage;
@@ -52,8 +55,8 @@ export /* @ngInject */ function HMRProvider() {
         case 'RouteTemplate':
           RouteStorage.set(hmrIdentityCaptureReg.exec(implement)[1], implement);
           break;
-        case 'Route':
-          RouteStorage.set(token, implement);
+        case 'RouteController':
+          RouteStorage.set(implement.ng_hmr_identity, implement);
           break;
         default:
           // eslint-disable-next-line no-console, angular/log
@@ -74,6 +77,9 @@ export /* @ngInject */ function HMRProvider() {
           break;
         case 'RouteTemplate':
           hmrThroughTemplate($injector, token);
+          break;
+        case 'RouteController':
+          hmrThroughController($injector, token, RouteLinkStorage.get(token.ng_hmr_identity));
           break;
         default:
           $rootScope.$apply();
