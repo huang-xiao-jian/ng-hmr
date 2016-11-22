@@ -117,33 +117,6 @@ export /* @ngInject */ function HMRProvider() {
 }
 
 /**
- * @description - decorate $injector instance, prepare for HMR
- *
- * @param $provide
- * @param $hmrProvider
- */
-export /* @ngInject */ function HMRInjectorDecoratorConfig($provide, $hmrProvider) {
-  $provide.decorator('$injector', ['$delegate', function ($delegate) {
-    let previousInjectorGet = $delegate.get;
-
-    $delegate.get = function (name) {
-      let instance = previousInjectorGet(name);
-
-      if (name.endsWith('Filter')) {
-        return (...args) => {
-          let proxy = $hmrProvider.pipeStorage.get(name);
-
-          return angular.isFunction(proxy)? proxy(...args) : instance(...args);
-        };
-      }
-      return instance;
-    };
-
-    return $delegate;
-  }]);
-}
-
-/**
  * @description - decorate route definition, prepare for HMR
  *
  * @param $stateProvider

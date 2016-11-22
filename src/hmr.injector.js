@@ -16,17 +16,26 @@ export /* @ngInject */ function HMRInjectorDecorator($provide, $hmrProvider) {
     let previous = $delegate.get;
 
     $delegate.get = function (name) {
+      let next;
+
+      switch (true) {
+        case name.endsWith('Filter'):
+          next = proxyHmrFilter(name);
+          break;
+      }
+
+      return next;
+    };
+
+    function proxyHmrFilter(name) {
       let instance = previous(name);
 
-      if (name.endsWith('Filter')) {
-        return (...args) => {
-          let proxy = $hmrProvider.pipeStorage.get(name);
+      return (...args) => {
+        let proxy = $hmrProvider.pipeStorage.get(name);
 
-          return angular.isFunction(proxy) ? proxy(...args) : instance(...args);
-        };
-      }
-      return instance;
-    };
+        return angular.isFunction(proxy) ? proxy(...args) : instance(...args);
+      };
+    }
 
     return $delegate;
   }]);
