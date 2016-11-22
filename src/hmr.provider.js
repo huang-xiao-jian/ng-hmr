@@ -5,8 +5,9 @@
 
 'use strict';
 
-import { Observable } from '@bornkiller/observable';
 import { hmrThroughFilter} from './worker/hmr.filter';
+import { hmrThroughTemplate } from './worker/hmr.template';
+import { hmrIdentityCaptureReg } from './util/hmr.reg';
 
 export /* @ngInject */ function HMRProvider() {
   // split component category
@@ -19,7 +20,6 @@ export /* @ngInject */ function HMRProvider() {
   const InstanceStorage = new Map();
   const ModalStorage = new Map();
 
-  this.Observable = Observable;
   this.routeStorage = RouteStorage;
   this.pipeStorage = PipeStorage;
   this.modalStorage = ModalStorage;
@@ -49,6 +49,9 @@ export /* @ngInject */ function HMRProvider() {
         case 'Controller':
           ControllerStorage.set(token, implement);
           break;
+        case 'RouteTemplate':
+          RouteStorage.set(hmrIdentityCaptureReg.exec(implement)[1], implement);
+          break;
         case 'Route':
           RouteStorage.set(token, implement);
           break;
@@ -62,12 +65,15 @@ export /* @ngInject */ function HMRProvider() {
      * @description - take hot effect, filter need re-compile, while factory, service not
      *
      * @param {string} category - angular component type, like filter, factory, route
-     * @param {string} token - angular component access token
+     * @param {string} token - angular component access token or just implement
      */
     function hmrOnStore(category, token) {
       switch (category) {
         case 'Filter':
           hmrThroughFilter($injector, token);
+          break;
+        case 'RouteTemplate':
+          hmrThroughTemplate($injector, token);
           break;
         default:
           $rootScope.$apply();
