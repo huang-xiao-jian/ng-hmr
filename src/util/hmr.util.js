@@ -53,22 +53,38 @@ export function decorateModalOptions($hmrProvider, options) {
   let [, identity] = hmrIdentityCaptureReg.exec(template);
   let middleTemplate = $hmrProvider.modalStorage.get(identity) || template;
 
+
   if (!controller) {
     return {
       ...options,
-      template: middleTemplate
+      template: `${middleTemplate} \n <aside class="${identity}" style="display: none">@ng_hmr_identity</aside>`
     };
   }
 
   let ctrlIdentity = controller.ng_hmr_identity;
   let nextController = $hmrProvider.modalStorage.get(ctrlIdentity) || controller;
-  let hmrTemplateBeacon = `<aside class="${identity} ${ctrlIdentity}" style="display: none">@ng_hmr_identity</aside>`;
 
   return {
     ...options,
-    template: middleTemplate + hmrTemplateBeacon,
+    template: `${middleTemplate} \n <aside class="${identity} ${ctrlIdentity}" style="display: none">@ng_hmr_identity</aside>`,
     controller: nextController
   };
+}
+
+/**
+ * @description - ng-hmr decorate route options, consider args as latest declare
+ *
+ * @param {object} template - route view template
+ * @param {function} controller - route view controller
+ */
+export function decorateRouteTemplate(template, controller) {
+  let [, identity] = hmrIdentityCaptureReg.exec(template);
+
+  if (!controller) {
+    return `${template} \n <aside class="${identity}" style="display: none">@ng_hmr_identity</aside>`;
+  } else {
+    return `${template} \n <aside class="${identity}  ${controller.ng_hmr_identity}" style="display: none">@ng_hmr_identity</aside>`;
+  }
 }
 
 /**

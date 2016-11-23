@@ -86,7 +86,7 @@ export /* @ngInject */ function HMRProvider() {
           hmrThroughTemplate($injector, token);
           break;
         case 'RouteController':
-          hmrThroughController($injector, token, RouteLinkStorage.get(token.ng_hmr_identity));
+          hmrThroughController($injector, token);
           break;
         case 'ModalTemplate':
           hmrThroughModalTemplate($injector, token);

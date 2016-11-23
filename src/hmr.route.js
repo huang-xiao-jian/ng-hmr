@@ -5,7 +5,7 @@
 
 'use strict';
 
-import { hmrIdentityCaptureReg } from './util/hmr.util';
+import { hmrIdentityCaptureReg, decorateRouteTemplate } from './util/hmr.util';
 
 export /* @ngInject */ function HMRRouteConfig($stateProvider, $hmrProvider) {
   $stateProvider.decorator('views', function (state, $delegate) {
@@ -19,17 +19,14 @@ export /* @ngInject */ function HMRRouteConfig($stateProvider, $hmrProvider) {
 
           if (key === 'template') {
             let [, identity] = hmrIdentityCaptureReg.exec(value);
-            let hmrTemplate = $hmrProvider.routeStorage.get(identity);
+            let template = $hmrProvider.routeStorage.get(identity) || value;
+            let controller = Reflect.get(target, 'controller');
 
-            hmrTemplate && (value = hmrTemplate);
+            value = decorateRouteTemplate(template, controller);
           }
 
-          if (key === 'controller' && value) {
-            let routeLinkTemplate = Reflect.get(target, 'template');
-            let hmrController = $hmrProvider.routeStorage.get(value.ng_hmr_identity);
-
-            $hmrProvider.routeLinkStorage.set(value.ng_hmr_identity, hmrIdentityCaptureReg.exec(routeLinkTemplate)[1]);
-            hmrController && (value = hmrController);
+          if (value && key === 'controller') {
+            value = $hmrProvider.routeStorage.get(value.ng_hmr_identity) || value;
           }
 
           return value;

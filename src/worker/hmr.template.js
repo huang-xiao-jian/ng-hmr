@@ -25,7 +25,8 @@ export function hmrThroughTemplate($injector, template) {
   }
 
   let target = markup.parent();
-  let scope = target.scope();
+  let page = markup.parents('[ui-view]');
+  let scope = page.scope();
   let middleware = $compile(template)(scope);
   let subViews = middleware.find('[ui-view]');
   let subViewSelectors;
@@ -42,5 +43,5 @@ export function hmrThroughTemplate($injector, template) {
     }, middleware);
   }
 
-  target.empty().append(middleware);
+  target.empty().append(middleware).append(markup);
 }
