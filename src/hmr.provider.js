@@ -8,6 +8,7 @@
 import { hmrThroughFilter} from './worker/hmr.filter';
 import { hmrThroughTemplate } from './worker/hmr.template';
 import { hmrThroughController } from './worker/hmr.controller';
+import { hmrThroughModalTemplate } from './worker/hmr.modal';
 import { hmrIdentityCaptureReg } from './util/hmr.reg';
 
 export /* @ngInject */ function HMRProvider() {
@@ -58,6 +59,12 @@ export /* @ngInject */ function HMRProvider() {
         case 'RouteController':
           RouteStorage.set(implement.ng_hmr_identity, implement);
           break;
+        case 'ModalTemplate':
+          ModalStorage.set(hmrIdentityCaptureReg.exec(implement)[1], implement);
+          break;
+        case 'ModalController':
+          ModalStorage.set(implement.ng_hmr_identity, implement);
+          break;
         default:
           // eslint-disable-next-line no-console, angular/log
           console.warn('feature %s / %s maybe not support now', token, category);
@@ -80,6 +87,9 @@ export /* @ngInject */ function HMRProvider() {
           break;
         case 'RouteController':
           hmrThroughController($injector, token, RouteLinkStorage.get(token.ng_hmr_identity));
+          break;
+        case 'ModalTemplate':
+          hmrThroughModalTemplate($injector, token);
           break;
         default:
           $rootScope.$apply();
