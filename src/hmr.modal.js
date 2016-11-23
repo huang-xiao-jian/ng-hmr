@@ -33,9 +33,7 @@ export /* @ngInject */ function HMRModalDecorator($provide, $hmrProvider) {
 
           $hmrProvider.modalStorage.set(`${identity}_instance`, modalInstance);
 
-          modalInstance.result.finally(() => {
-            $hmrProvider.modalStorage.delete(identity);
-          });
+          options.resolve && $hmrProvider.modalStorage.set(`${identity}_resolve`, options.resolve);
         }
 
         return modalInstance;

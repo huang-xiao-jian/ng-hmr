@@ -40,7 +40,9 @@ export function hmrThroughModalTemplate($injector, template) {
  * @param {string} controller - next controller implement
  * @param {object} $uibModalInstance
  */
-export function hmrThroughModalController($injector, controller, $uibModalInstance) {
+export function hmrThroughModalController($injector, controller, $uibModalInstance, resolve) {
+  let $uibResolve = $injector.get('$uibResolve');
+  let $timeout = $injector.get('$timeout');
   let identity = controller.ng_hmr_identity;
   let selector = `.${identity}`;
   let markup = angular.element(selector);
@@ -55,8 +57,21 @@ export function hmrThroughModalController($injector, controller, $uibModalInstan
   let container = markup.parents('.modal');
   let scope = container.scope();
   let prevVM = scope.vm;
-  let nextVM = $injector.instantiate(controller, {$scope: scope, $uibModalInstance: $uibModalInstance});
+  let nextVM = {};
 
-  translateNextVM(prevVM, nextVM);
+  if (resolve) {
+    $uibResolve.resolve(resolve).then(locals => {
+      $timeout(() => {
+        nextVM = $injector.instantiate(controller, {...locals, $scope: scope, $uibModalInstance: $uibModalInstance});
+
+        translateNextVM(prevVM, nextVM);
+      }, 1);
+    });
+  } else {
+    nextVM = $injector.instantiate(controller, {$scope: scope, $uibModalInstance: $uibModalInstance});
+
+    translateNextVM(prevVM, nextVM);
+  }
+
   scope.$apply();
 }

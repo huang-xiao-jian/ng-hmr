@@ -92,7 +92,7 @@ export /* @ngInject */ function HMRProvider() {
           hmrThroughModalTemplate($injector, token);
           break;
         case 'ModalController':
-          hmrThroughModalController($injector, token, ModalStorage.get(`${token.ng_hmr_identity}_instance`));
+          hmrThroughModalController($injector, token, ModalStorage.get(`${token.ng_hmr_identity}_instance`), ModalStorage.get(`${token.ng_hmr_identity}_resolve`));
           break;
         default:
           $rootScope.$apply();
