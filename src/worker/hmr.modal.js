@@ -4,7 +4,7 @@
  */
 'use strict';
 
-import { hmrIdentityCaptureReg } from '../util/hmr.reg';
+import { hmrIdentityCaptureReg } from '../util/hmr.util';
 
 /**
  * @description - update view filter

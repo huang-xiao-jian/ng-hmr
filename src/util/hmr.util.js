@@ -1,11 +1,16 @@
 /**
- * @description - HMR iterate value which trigger filter digest
+ * @description - ng-hmr util variable, method
  * @author - bornkiller <hjj491229492@hotmail.com>
  */
 
 'use strict';
 
 import { isString, isBoolean, isNumber } from 'lodash';
+
+/**
+ * @description - ng-hmr share regular capture reg
+ */
+export const hmrIdentityCaptureReg = /^<!--\s@ng_hmr_identity\s(.+)\s-->/;
 
 /**
  * @description - modify primitive value, trigger pipe re-calculation

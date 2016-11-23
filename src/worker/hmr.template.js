@@ -1,12 +1,10 @@
-/* eslint-disable angular/angularelement */
-
 /**
  * @description - HMR implement runtime
  * @author - bornkiller <hjj491229492@hotmail.com>
  */
 'use strict';
 
-import { hmrIdentityCaptureReg } from '../util/hmr.reg';
+import { hmrIdentityCaptureReg } from '../util/hmr.util';
 
 /**
  * @description - update view filter

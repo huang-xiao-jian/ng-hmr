@@ -7,7 +7,7 @@
 'use strict';
 
 import { first } from 'lodash';
-import { iterateViewValue } from '../util/hmr.iterate';
+import { iterateViewValue } from '../util/hmr.util';
 
 /**
  * @description - update view filter

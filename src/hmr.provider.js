@@ -9,7 +9,7 @@ import { hmrThroughFilter} from './worker/hmr.filter';
 import { hmrThroughTemplate } from './worker/hmr.template';
 import { hmrThroughController } from './worker/hmr.controller';
 import { hmrThroughModalTemplate } from './worker/hmr.modal';
-import { hmrIdentityCaptureReg } from './util/hmr.reg';
+import { hmrIdentityCaptureReg } from './util/hmr.util';
 
 export /* @ngInject */ function HMRProvider() {
   // split component category
