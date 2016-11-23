@@ -4,7 +4,7 @@
  */
 'use strict';
 
-import { hmrIdentityCaptureReg } from '../util/hmr.util';
+import { hmrIdentityCaptureReg, translateNextVM } from '../util/hmr.util';
 
 /**
  * @description - update view filter
@@ -15,7 +15,7 @@ import { hmrIdentityCaptureReg } from '../util/hmr.util';
 export function hmrThroughModalTemplate($injector, template) {
   let $compile = $injector.get('$compile');
   let [, identity] = hmrIdentityCaptureReg.exec(template);
-  let selector = `.ng-hmr-modal.${identity}`;
+  let selector = `.${identity}`;
   let markup = angular.element(selector);
 
   if (!markup.length) {
@@ -24,9 +24,39 @@ export function hmrThroughModalTemplate($injector, template) {
     return;
   }
 
-  let scope = markup.scope();
-  let target = markup.find('.modal-content');
+  // maybe change in the ui-bootstrap implement
+  let target = markup.parent();
+  let container = markup.parents('.modal');
+  let scope = container.scope();
   let middleware = $compile(template)(scope);
 
-  target.empty().append(middleware);
+  target.empty().append(middleware).append(markup);
+}
+
+/**
+ * @description - update view filter
+ *
+ * @param {function} $injector - Angular DI $injector
+ * @param {string} controller - next controller implement
+ * @param {object} $uibModalInstance
+ */
+export function hmrThroughModalController($injector, controller, $uibModalInstance) {
+  let identity = controller.ng_hmr_identity;
+  let selector = `.${identity}`;
+  let markup = angular.element(selector);
+
+  if (!markup.length) {
+    // eslint-disable-next-line no-console, angular/log
+    console.log(`[NG_HMR] the ${selector} not active, declare already updated...`);
+    return;
+  }
+
+  // maybe change in the ui-bootstrap implement
+  let container = markup.parents('.modal');
+  let scope = container.scope();
+  let prevVM = scope.vm;
+  let nextVM = $injector.instantiate(controller, {$scope: scope, $uibModalInstance: $uibModalInstance});
+
+  translateNextVM(prevVM, nextVM);
+  scope.$apply();
 }

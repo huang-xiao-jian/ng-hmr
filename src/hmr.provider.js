@@ -8,7 +8,7 @@
 import { hmrThroughFilter} from './worker/hmr.filter';
 import { hmrThroughTemplate } from './worker/hmr.template';
 import { hmrThroughController } from './worker/hmr.controller';
-import { hmrThroughModalTemplate } from './worker/hmr.modal';
+import { hmrThroughModalTemplate, hmrThroughModalController } from './worker/hmr.modal';
 import { hmrIdentityCaptureReg } from './util/hmr.util';
 
 export /* @ngInject */ function HMRProvider() {
@@ -90,6 +90,9 @@ export /* @ngInject */ function HMRProvider() {
           break;
         case 'ModalTemplate':
           hmrThroughModalTemplate($injector, token);
+          break;
+        case 'ModalController':
+          hmrThroughModalController($injector, token, ModalStorage.get(`${token.ng_hmr_identity}_instance`));
           break;
         default:
           $rootScope.$apply();

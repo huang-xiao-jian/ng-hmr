@@ -32,11 +32,11 @@ export function hmrThroughTemplate($injector, template) {
 
   if (subViews.length) {
     subViewSelectors = subViews.map(function () {
-      return '[ui-view=' + $(this).attr('ui-view') + ']';
+      return '[ui-view=' + angular.element(this).attr('ui-view') + ']';
     }).toArray();
 
     middleware = subViewSelectors.reduce(function (prev, selector) {
-      prev.find(selector).replaceWith($(selector));
+      prev.find(selector).replaceWith(angular.element(selector));
 
       return prev;
     }, middleware);

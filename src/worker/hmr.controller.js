@@ -6,7 +6,7 @@
  */
 'use strict';
 
-import { chain, has } from 'lodash';
+import { translateNextVM } from '../util/hmr.util';
 
 /**
  * @description - update view filter
@@ -29,18 +29,7 @@ export function hmrThroughController($injector, controller, identity) {
   let scope = target.scope();
   let prevVM = scope.vm;
   let nextVM = $injector.instantiate(controller, {$scope: scope});
-  let toString = Object.prototype.toString;
 
-  // 假设所有关联属性在constructor内部声明,变量类型不变
-  chain(nextVM).keys().value().forEach(key => {
-    if (!has(prevVM, key) || toString.call(prevVM[key]) !== toString.call(nextVM[key])) {
-      prevVM[key] = nextVM[key];
-    }
-  });
-
-  chain(Object.getOwnPropertyNames(nextVM.__proto__)).filter(key => key !== 'constructor').value().forEach(key => {
-    prevVM.__proto__[key] = nextVM.__proto__[key];
-  });
-
+  translateNextVM(prevVM, nextVM);
   scope.$apply();
 }

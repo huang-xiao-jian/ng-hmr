@@ -4,7 +4,7 @@
  */
 'use strict';
 
-import { hmrIdentityCaptureReg } from './util/hmr.util';
+import { decorateModalOptions } from './util/hmr.util';
 
 /**
  * @description - decorate $injector instance for HMR
@@ -19,17 +19,26 @@ export /* @ngInject */ function HMRModalDecorator($provide, $hmrProvider) {
     let handler = {
       apply(target, context, args) {
         let [options] = args;
-        let {template, controller, windowClass} = options;
-        let [, identity] = hmrIdentityCaptureReg.exec(template);
+        let nextOptions = decorateModalOptions($hmrProvider, options);
 
         options = {
           ...options,
-          template: $hmrProvider.modalStorage.get(identity) || template,
-          controller: controller ? ($hmrProvider.modalStorage.get(controller.ng_hmr_identity) || controller) : undefined,
-          windowClass: windowClass ? `${windowClass} ${identity} ng-hmr-modal` : `${identity} ng-hmr-modal`
+          ...nextOptions
         };
 
-        return Reflect.apply(target, context, [options]);
+        let modalInstance = Reflect.apply(target, context, [options]);
+
+        if (options.controller) {
+          let identity = options.controller.ng_hmr_identity;
+
+          $hmrProvider.modalStorage.set(`${identity}_instance`, modalInstance);
+
+          modalInstance.result.finally(() => {
+            $hmrProvider.modalStorage.delete(identity);
+          });
+        }
+
+        return modalInstance;
       }
     };
 
