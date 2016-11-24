@@ -15,14 +15,12 @@ export /* @ngInject */ function HMRProvider() {
   // RouteStorage => manage route, PipeStorage => manage pipe, ModalStorage => manage modal
   // store ultimate mode
   const RouteStorage = new Map();
-  const PipeStorage = new Map();
   // support explicit controller only, angular.module().controller('', SomeController)
   const ControllerStorage = new Map();
   const InstanceStorage = new Map();
   const ModalStorage = new Map();
 
   this.routeStorage = RouteStorage;
-  this.pipeStorage = PipeStorage;
   this.modalStorage = ModalStorage;
   this.instanceStorage = InstanceStorage;
 
@@ -43,7 +41,10 @@ export /* @ngInject */ function HMRProvider() {
     function hmrOnChange(category, token, implement) {
       switch (category) {
         case 'Filter':
-          PipeStorage.set(`${token}Filter`, $injector.invoke(implement));
+          InstanceStorage.set(`${token}Filter`, $injector.invoke(implement));
+          break;
+        case 'Directive':
+          InstanceStorage.set(`${token}Directive`, $injector.invoke(implement));
           break;
         case 'Factory':
           InstanceStorage.set(token, $injector.invoke(implement));

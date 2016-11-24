@@ -68,7 +68,7 @@ export /* @ngInject */ function HMRInjectorDecorator($provide, $hmrProvider) {
       let instance = previous(name);
       let handler = {
         apply(target, context, args) {
-          let hmrFilter = $hmrProvider.pipeStorage.get(name);
+          let hmrFilter = $hmrProvider.instanceStorage.get(name);
 
           return angular.isFunction(hmrFilter) ? Reflect.apply(hmrFilter, context, args) : Reflect.apply(target, context, args);
         }
@@ -85,7 +85,29 @@ export /* @ngInject */ function HMRInjectorDecorator($provide, $hmrProvider) {
      * @return {object}
      */
     function proxyHmrDirective(name) {
-      return previous(name);
+      // skip explicit angular internal directive
+      if (/^(?:ng|uib?)/.test(name)) {
+        return previous(name);
+      }
+
+      // forbidden the same name for directive
+      let [$delegate] = previous(name);
+      let whiteList = ['script', 'style', 'form', 'input', 'select', 'textarea', 'required', 'a'];
+
+      // skip explicit angular internal directive
+      if (whiteList.includes($delegate.name) && $delegate.restrict === 'E') {
+        return previous(name);
+      }
+
+      let handler = {
+        get(target, key) {
+          let hmrInstance = $hmrProvider.instanceStorage.get(name);
+
+          return hmrInstance ? Reflect.get(hmrInstance, key) : Reflect.get(target, key);
+        }
+      };
+
+      return [new Proxy($delegate, handler)];
     }
 
     return $delegate;
