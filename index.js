@@ -8,9 +8,9 @@
 
 import angular from 'angular';
 import { HMRProvider } from './src/hmr.provider';
-import { HMRInjectorDecorator } from './src/hmr.injector';
-import { HMRRouteConfig } from './src/hmr.route';
-import { HMRModalDecorator } from './src/hmr.modal';
+import { HMRInjectorDecorator } from './src/proxy/injector';
+import { HMRRouteConfig } from './src/proxy/route';
+import { HMRModalDecorator } from './src/proxy/modal';
 import { HMRExpose } from './src/hmr.expose';
 
 const HMR_MODULE = 'ng-hmr';

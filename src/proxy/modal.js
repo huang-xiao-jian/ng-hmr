@@ -4,7 +4,7 @@
  */
 'use strict';
 
-import { decorateModalOptions } from './util/hmr.util';
+import { decorateModalOptions } from '../util/hmr.util';
 
 /**
  * @description - decorate $injector instance for HMR

@@ -5,10 +5,9 @@
 
 'use strict';
 
-import { hmrThroughFilter} from './worker/hmr.filter';
-import { hmrThroughTemplate } from './worker/hmr.template';
-import { hmrThroughController } from './worker/hmr.controller';
-import { hmrThroughModalTemplate, hmrThroughModalController } from './worker/hmr.modal';
+import { adoptNextFilter } from './worker/filter';
+import { adoptNextTemplate, adoptNextController} from './worker/route';
+import { adoptNextModalTemplate, adoptNextModalController } from './worker/modal';
 import { hmrIdentityCaptureReg } from './util/hmr.util';
 
 export /* @ngInject */ function HMRProvider() {
@@ -16,7 +15,6 @@ export /* @ngInject */ function HMRProvider() {
   // RouteStorage => manage route, PipeStorage => manage pipe, ModalStorage => manage modal
   // store ultimate mode
   const RouteStorage = new Map();
-  const RouteLinkStorage =new Map();
   const PipeStorage = new Map();
   // support explicit controller only, angular.module().controller('', SomeController)
   const ControllerStorage = new Map();
@@ -24,15 +22,15 @@ export /* @ngInject */ function HMRProvider() {
   const ModalStorage = new Map();
 
   this.routeStorage = RouteStorage;
-  this.routeLinkStorage = RouteLinkStorage;
   this.pipeStorage = PipeStorage;
   this.modalStorage = ModalStorage;
   this.instanceStorage = InstanceStorage;
 
   this.$get = ['$injector', '$rootScope', function ($injector, $rootScope) {
     return {
-      hmrOnTransfer,
-      hmrOnStore
+      hmrOnChange,
+      hmrDoActive,
+      modalStorage: ModalStorage
     };
 
     /**
@@ -42,7 +40,7 @@ export /* @ngInject */ function HMRProvider() {
      * @param {string} token - angular component access token
      * @param {function} implement - angular component next implement
      */
-    function hmrOnTransfer(category, token, implement) {
+    function hmrOnChange(category, token, implement) {
       switch (category) {
         case 'Filter':
           PipeStorage.set(`${token}Filter`, $injector.invoke(implement));
@@ -75,24 +73,24 @@ export /* @ngInject */ function HMRProvider() {
      * @description - take hot effect, filter need re-compile, while factory, service not
      *
      * @param {string} category - angular component type, like filter, factory, route
-     * @param {string} token - angular component access token or just implement
+     * @param {string} target - angular component access token or just implement
      */
-    function hmrOnStore(category, token) {
+    function hmrDoActive(category, target) {
       switch (category) {
         case 'Filter':
-          hmrThroughFilter($injector, token);
+          adoptNextFilter($injector, target);
           break;
         case 'RouteTemplate':
-          hmrThroughTemplate($injector, token);
+          adoptNextTemplate($injector, target);
           break;
         case 'RouteController':
-          hmrThroughController($injector, token);
+          adoptNextController($injector, target);
           break;
         case 'ModalTemplate':
-          hmrThroughModalTemplate($injector, token);
+          adoptNextModalTemplate($injector, target);
           break;
         case 'ModalController':
-          hmrThroughModalController($injector, token, ModalStorage.get(`${token.ng_hmr_identity}_instance`), ModalStorage.get(`${token.ng_hmr_identity}_resolve`));
+          adoptNextModalController($injector, target);
           break;
         default:
           $rootScope.$apply();

@@ -1,10 +1,10 @@
 /**
- * @description - HMR implement runtime
+ * @description - HMR route template, controller implement runtime
  * @author - bornkiller <hjj491229492@hotmail.com>
  */
 'use strict';
 
-import { hmrIdentityCaptureReg } from '../util/hmr.util';
+import { hmrIdentityCaptureReg, translateNextVM } from '../util/hmr.util';
 
 /**
  * @description - update view filter
@@ -12,7 +12,7 @@ import { hmrIdentityCaptureReg } from '../util/hmr.util';
  * @param {function} $injector - Angular DI $injector
  * @param {string} template - next template markup
  */
-export function hmrThroughTemplate($injector, template) {
+export function adoptNextTemplate($injector, template) {
   let $compile = $injector.get('$compile');
   let [, identity] = hmrIdentityCaptureReg.exec(template);
   let selector = `.${identity}`;
@@ -44,4 +44,32 @@ export function hmrThroughTemplate($injector, template) {
   }
 
   target.empty().append(middleware).append(markup);
+}
+
+/**
+ * @description - update view filter
+ *
+ * @param {function} $injector - Angular DI $injector
+ * @param {string} controller - next controller implement
+ */
+export function adoptNextController($injector, controller) {
+  let identity = controller.ng_hmr_identity;
+  let selector = `.${identity}`;
+  let markup = angular.element(selector);
+
+  if (!markup.length) {
+    // eslint-disable-next-line no-console, angular/log
+    console.log(`[NG_HMR] the ${identity} not active, declare already updated...`);
+    return;
+  }
+
+  // maybe change in the ui-bootstrap implement
+  let page = markup.parents('[ui-view]');
+  let scope = page.scope();
+  let prevVM = scope.vm;
+  let nextVM = $injector.instantiate(controller, {$scope: scope});
+
+  translateNextVM(prevVM, nextVM);
+
+  scope.$apply();
 }

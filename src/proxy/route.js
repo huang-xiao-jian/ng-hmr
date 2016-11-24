@@ -5,7 +5,7 @@
 
 'use strict';
 
-import { hmrIdentityCaptureReg, decorateRouteTemplate } from './util/hmr.util';
+import { hmrIdentityCaptureReg, decorateRouteTemplate } from '../util/hmr.util';
 
 export /* @ngInject */ function HMRRouteConfig($stateProvider, $hmrProvider) {
   $stateProvider.decorator('views', function (state, $delegate) {

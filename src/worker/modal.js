@@ -12,7 +12,7 @@ import { hmrIdentityCaptureReg, translateNextVM } from '../util/hmr.util';
  * @param {function} $injector - Angular DI $injector
  * @param {string} template - next template markup
  */
-export function hmrThroughModalTemplate($injector, template) {
+export function adoptNextModalTemplate($injector, template) {
   let $compile = $injector.get('$compile');
   let [, identity] = hmrIdentityCaptureReg.exec(template);
   let selector = `.${identity}`;
@@ -38,13 +38,15 @@ export function hmrThroughModalTemplate($injector, template) {
  *
  * @param {function} $injector - Angular DI $injector
  * @param {string} controller - next controller implement
- * @param {object} $uibModalInstance
  */
-export function hmrThroughModalController($injector, controller, $uibModalInstance, resolve) {
+export function adoptNextModalController($injector, controller) {
   let $uibResolve = $injector.get('$uibResolve');
+  let $hmr = $injector.get('$hmr');
   let $timeout = $injector.get('$timeout');
   let identity = controller.ng_hmr_identity;
   let selector = `.${identity}`;
+  let $uibModalInstance = $hmr.modalStorage.get(`${identity}_instance`);
+  let resolve = $hmr.modalStorage.get(`${identity}_resolve`);
   let markup = angular.element(selector);
 
   if (!markup.length) {

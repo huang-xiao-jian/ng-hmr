@@ -1,5 +1,3 @@
-/* eslint-disable angular/angularelement */
-
 /**
  * @description - HMR implement runtime
  * @author - bornkiller <hjj491229492@hotmail.com>
@@ -15,11 +13,11 @@ import { iterateViewValue } from '../util/hmr.util';
  * @param {function} $injector - Angular DI $injector
  * @param {string} name - register filter name
  */
-export function hmrThroughFilter($injector, name) {
+export function adoptNextFilter($injector, name) {
   let targets;
   let $parse = $injector.get('$parse');
 
-  targets = $(`[ng-bind*=${name}]`).map(function () {
+  targets = angular.element(`[ng-bind*=${name}]`).map(function () {
     return {
       scope: angular.element(this).scope(),
       target: angular.element(this)
