@@ -6,6 +6,7 @@
 'use strict';
 
 import { adoptNextFilter } from './worker/filter';
+import { adoptNextDirective } from './worker/directive';
 import { adoptNextTemplate, adoptNextController} from './worker/route';
 import { adoptNextModalTemplate, adoptNextModalController } from './worker/modal';
 import { hmrIdentityCaptureReg } from './util/hmr.util';
@@ -26,6 +27,8 @@ export /* @ngInject */ function HMRProvider() {
     return {
       hmrOnChange,
       hmrDoActive,
+      routeStorage: RouteStorage,
+      instanceStorage: InstanceStorage,
       modalStorage: ModalStorage
     };
 
@@ -78,6 +81,9 @@ export /* @ngInject */ function HMRProvider() {
       switch (category) {
         case 'Filter':
           adoptNextFilter($injector, target);
+          break;
+        case 'Directive':
+          adoptNextDirective($injector, target);
           break;
         case 'RouteTemplate':
           adoptNextTemplate($injector, target);

@@ -85,7 +85,7 @@ export /* @ngInject */ function HMRInjectorDecorator($provide, $hmrProvider) {
      * @return {object}
      */
     function proxyHmrDirective(name) {
-      // skip explicit angular internal directive
+      // skip explicit angular, ui-router, ui-bootstrap internal directive
       if (/^(?:ng|uib?)/.test(name)) {
         return previous(name);
       }

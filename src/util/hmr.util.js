@@ -81,9 +81,9 @@ export function decorateRouteTemplate(template, controller) {
   let [, identity] = hmrIdentityCaptureReg.exec(template);
 
   if (!controller) {
-    return `${template} \n <aside class="${identity}" style="display: none">@ng_hmr_identity</aside>`;
+    return `${template} \n <aside class="ng-hmr-markup ${identity}" data-template-identity="${identity}" style="display: none">@ng_hmr_identity</aside>`;
   } else {
-    return `${template} \n <aside class="${identity}  ${controller.ng_hmr_identity}" style="display: none">@ng_hmr_identity</aside>`;
+    return `${template} \n <aside class="ng-hmr-markup ${identity} ${controller.ng_hmr_identity}" data-template-identity="${identity}" style="display: none">@ng_hmr_identity</aside>`;
   }
 }
 
