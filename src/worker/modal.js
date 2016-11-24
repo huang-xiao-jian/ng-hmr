@@ -26,7 +26,7 @@ export function adoptNextModalTemplate($injector, template) {
 
   // maybe change in the ui-bootstrap implement
   let target = markup.parent();
-  let container = markup.parents('.modal');
+  let container = markup.closest('.modal');
   let scope = container.scope();
   let middleware = $compile(template)(scope);
 
@@ -56,7 +56,7 @@ export function adoptNextModalController($injector, controller) {
   }
 
   // maybe change in the ui-bootstrap implement
-  let container = markup.parents('.modal');
+  let container = markup.closest('.modal');
   let scope = container.scope();
   let prevVM = scope.vm;
   let nextVM = {};

@@ -11,18 +11,16 @@ import { adoptNextModalTemplate, adoptNextModalController } from './worker/modal
 import { hmrIdentityCaptureReg } from './util/hmr.util';
 
 export /* @ngInject */ function HMRProvider() {
-  // split component category
-  // RouteStorage => manage route, PipeStorage => manage pipe, ModalStorage => manage modal
-  // store ultimate mode
+  // RouteStorage => manage route, InstanceStorage => manage filter, factory, directive, ModalStorage => manage modal
+  // ControllerStorage support explicit controller only, angular.module().controller('', SomeController)
   const RouteStorage = new Map();
-  // support explicit controller only, angular.module().controller('', SomeController)
-  const ControllerStorage = new Map();
   const InstanceStorage = new Map();
   const ModalStorage = new Map();
+  const ControllerStorage = new Map();
 
   this.routeStorage = RouteStorage;
-  this.modalStorage = ModalStorage;
   this.instanceStorage = InstanceStorage;
+  this.modalStorage = ModalStorage;
 
   this.$get = ['$injector', '$rootScope', function ($injector, $rootScope) {
     return {

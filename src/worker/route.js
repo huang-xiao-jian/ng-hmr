@@ -25,7 +25,7 @@ export function adoptNextTemplate($injector, template) {
   }
 
   let target = markup.parent();
-  let page = markup.parents('[ui-view]');
+  let page = markup.closest('[ui-view]');
   let scope = page.scope();
   let middleware = $compile(template)(scope);
   let subViews = middleware.find('[ui-view]');
@@ -64,7 +64,7 @@ export function adoptNextController($injector, controller) {
   }
 
   // maybe change in the ui-bootstrap implement
-  let page = markup.parents('[ui-view]');
+  let page = markup.closest('[ui-view]');
   let scope = page.scope();
   let prevVM = scope.vm;
   let nextVM = $injector.instantiate(controller, {$scope: scope});
