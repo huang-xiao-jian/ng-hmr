@@ -2,23 +2,29 @@
 cooperate with ng-hot-loader, make NG HMR possible, no suggest for legacy project
 
 ## pre-requirement
-implement depend on `lodash`, so you have to install.
+Current implement depend on `lodash`, `jquery`, `angular-ui-router`, `angular-ui-bootstrap`, so you have to install them all. also, browser should support ES6 `Proxy`， `Reflect`. I will try to find better solution after HMR work as expected.
 
-+ `angular` - global variable
-+ `lodash` - global variable
-+ `angular-ui-router` - version > 1.0.0
++ `angular` - global variable `angular`, test version >= 1.5.8
++ `angular-ui-router` - test version >= 1.0.0
++ `angular-ui-bootstrap` - test version >= 2.2.0
++ `lodash` - global variable `_`, test version >= 4.16.4
++ `jquery` - global variable `jQuery, $`, test version >= 3.1.1
 
 ## usage
 
 ```javascript
 import 'angular';
 import 'angular-ui-router';
+import 'angular-ui-bootstrap';
+import 'jquery';
+import 'lodash';
 import 'ng-hmr';
 ```
 
 ```javascript
 const dependencies = [
   'ui.router',
+  'ui.bootstrap',
   'ng-hmr'
 ];
 
@@ -27,15 +33,15 @@ angular.module('App', dependencies)
 
 ## limitation
 + support router level `template`, `controller` hot module replacement
++ support modal level `template`, `controller` hot module replacement
 + support factory level `service` hot module replacement
-+ file and code should follow strict rules
++ support rough directive hot module replacement, completely re-compile entire template, which means status lost
 
 ## rule and example
 
 ### factory
-+ file name => 'prompt.factory.js'
-+ declare variable name => 'promptFactory'
-+ result should be literal object => {key: value}
+
++ instance should be literal object => {key: value}
 
 ```javascript
 export /* @ngInject */ function promptFactory() {
@@ -55,13 +61,9 @@ export /* @ngInject */ function promptFactory() {
 ```
 
 ### route
-+ file name => 'todo.route.js'
-+ declare variable name => 'TodoRoute'
-+ template => 'html string'
 
-+ controller => ControllerVariable
-+ controller file name => 'todo.controller.js'
-+ controller declare variable name => 'TodoController'
++ template => `html string`, like `html-loader`
++ controller => `*Controller`, actual implement, not string token
 
 ```javascript
 /**
@@ -114,5 +116,38 @@ export class SidebarController {
 }
 ```
 
+### modal
+
++ template => 'html string', like `html-loader`, especially, the template filename should endsWith `modal.html`, because `route template`, `modal template` has different update strategy, and i can't identify which one should take effect.
++ controller => `*ModalController`, not string token, especially, the controller filename should endsWith `modal.controller.js`, the same reason as above.
+
+```javascript
+/**
+ * @description - collection feature controller
+ * @author - bornkiller <hjj491229492@hotmail.com>
+ */
+'use strict';
+
+import { TodoModalController } from './todo.modal.controller';
+
+/* @ngInject */
+export class TodoController {
+  constructor($q, $scope, $ngRedux, $uibModal) {
+    this.$uibModal = $uibModal;
+  }
+
+  displayPoemModal() {
+    this.$uibModal.open({
+      template: require('./todo.modal.html'),
+      controller: TodoModalController,
+      controllerAs: 'vm'
+    });
+  }
+}
+```
+
 ## demo 
 please see [angular-boilerplate-webpack](https://github.com/bornkiller/angular-boilerplate-webpack) for HMR attempt.
+
+## license
+MIT
