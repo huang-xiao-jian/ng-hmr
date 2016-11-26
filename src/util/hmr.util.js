@@ -24,7 +24,7 @@ export const hmrIdentityCaptureReg = /^<!--\s@ng_hmr_identity\s(.+)\s-->/;
 export function iterateViewValue(primitive) {
   let result;
   let uuid = Math.random().toString(36).substr(2, 9);
-
+  
   switch (true) {
     case isString(primitive):
       result = `${primitive}_${uuid}`;
@@ -38,7 +38,7 @@ export function iterateViewValue(primitive) {
     default:
       result = primitive;
   }
-
+  
   return result;
 }
 
@@ -49,21 +49,21 @@ export function iterateViewValue(primitive) {
  * @param {object} options - modal options
  */
 export function decorateModalOptions($hmrProvider, options) {
-  let {template, controller} = options;
+  let { template, controller } = options;
   let [, identity] = hmrIdentityCaptureReg.exec(template);
   let middleTemplate = $hmrProvider.modalStorage.get(identity) || template;
-
-
+  
+  
   if (!controller) {
     return {
       ...options,
       template: `${middleTemplate} \n <aside class="${identity}" style="display: none">@ng_hmr_identity</aside>`
     };
   }
-
+  
   let ctrlIdentity = controller.ng_hmr_identity;
   let nextController = $hmrProvider.modalStorage.get(ctrlIdentity) || controller;
-
+  
   return {
     ...options,
     template: `${middleTemplate} \n <aside class="${identity} ${ctrlIdentity}" style="display: none">@ng_hmr_identity</aside>`,
@@ -72,18 +72,16 @@ export function decorateModalOptions($hmrProvider, options) {
 }
 
 /**
- * @description - ng-hmr decorate route options, consider args as latest declare
+ * @description - ng-hmr decorate route options, mark page template / controller identity
  *
- * @param {object} template - route view template
+ * @param {object} identity - route view template identity
  * @param {function} controller - route view controller
  */
-export function decorateRouteTemplate(template, controller) {
-  let [, identity] = hmrIdentityCaptureReg.exec(template);
-
+export function decorateRouteTemplate(identity, controller) {
   if (!controller) {
-    return `${template} \n <aside class="ng-hmr-markup ${identity}" data-template-identity="${identity}" style="display: none">@ng_hmr_identity</aside>`;
+    return `<aside class="ng-hmr-markup ${identity}" data-template-identity="${identity}" style="display: none">@ng_hmr_identity</aside>`;
   } else {
-    return `${template} \n <aside class="ng-hmr-markup ${identity} ${controller.ng_hmr_identity}" data-template-identity="${identity}" style="display: none">@ng_hmr_identity</aside>`;
+    return `<aside class="ng-hmr-markup ${identity} ${controller.ng_hmr_identity}" data-template-identity="${identity}" data-controller-identity="${controller.ng_hmr_identity}" style="display: none">@ng_hmr_identity</aside>`;
   }
 }
 
@@ -95,14 +93,14 @@ export function decorateRouteTemplate(template, controller) {
  */
 export function translateNextVM(prevVM, nextVM) {
   let toString = Object.prototype.toString;
-
+  
   // 假设所有关联属性在constructor内部声明,变量类型不变
   chain(nextVM).keys().value().forEach(key => {
     if (!has(prevVM, key) || toString.call(prevVM[key]) !== toString.call(nextVM[key])) {
       prevVM[key] = nextVM[key];
     }
   });
-
+  
   chain(Object.getOwnPropertyNames(nextVM.__proto__)).filter(key => key !== 'constructor').value().forEach(key => {
     prevVM.__proto__[key] = nextVM.__proto__[key];
   });

@@ -20,13 +20,13 @@ export /* @ngInject */ function HMRRouteConfig($stateProvider, $hmrProvider) {
           if (key === 'template') {
             let [, identity] = hmrIdentityCaptureReg.exec(value);
 
-            // init time travel, just for directive HMR convenience
+            // init route template, just for directive HMR template identify convenience
             !$hmrProvider.routeStorage.has(identity) && $hmrProvider.routeStorage.set(identity, value);
 
             let template = $hmrProvider.routeStorage.get(identity);
             let controller = Reflect.get(target, 'controller');
 
-            value = decorateRouteTemplate(template, controller);
+            value = `${template} \n ${decorateRouteTemplate(identity, controller)}`;
           }
 
           if (value && key === 'controller') {
