@@ -4,7 +4,6 @@
  */
 import eslint from 'rollup-plugin-eslint';
 import nodeResolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
 import ngAnnotate from 'rollup-plugin-ng-annotate';
 import babel from 'rollup-plugin-babel';
 
@@ -17,9 +16,6 @@ export default {
       include: ['index.js', 'src/*.js']
     }),
     nodeResolve({jsnext: true, module: true}),
-    commonjs({
-      include: ['node_modules/@bornkiller/**']
-    }),
     ngAnnotate(),
     babel()
   ],
