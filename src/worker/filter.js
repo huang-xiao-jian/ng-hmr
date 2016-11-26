@@ -14,24 +14,18 @@ import { iterateViewValue } from '../util/hmr.util';
  * @param {string} name - register filter name
  */
 export function adoptNextFilter($injector, name) {
-  let targets;
   let $parse = $injector.get('$parse');
 
-  targets = angular.element(`[ng-bind*=${name}]`).map(function () {
-    return {
-      scope: angular.element(this).scope(),
-      target: angular.element(this)
-    };
-  }).toArray();
-
-  targets.forEach(function ({scope, target}) {
+  angular.element(`[ng-bind*=${name}]`).map(function () {
+    let target = angular.element(this);
+    let scope = target.scope();
     let binding = first(target.attr('ng-bind').split('|'));
     let getter = $parse(binding);
     let setter = getter.assign;
-
+    
     let previous = getter(scope);
     let next = iterateViewValue(previous);
-
+  
     setter(scope, next);
     scope.$apply();
     setter(scope, previous);

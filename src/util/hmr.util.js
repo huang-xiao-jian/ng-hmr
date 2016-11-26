@@ -13,11 +13,11 @@ import { chain, has, isString, isBoolean, isNumber } from 'lodash';
 export const hmrIdentityCaptureReg = /^<!--\s@ng_hmr_identity\s(.+)\s-->/;
 
 /**
- * @description - modify primitive value, trigger pipe re-calculation
+ * @description
+ * - trigger pipe re-calculation
+ * - object or array input will check output each $digest, while primitive not
  *
  * @param {string} primitive
- *
- * @todo - just trigger string update, how to resolve object or array
  *
  * @return {string}
  */
@@ -27,7 +27,7 @@ export function iterateViewValue(primitive) {
 
   switch (true) {
     case isString(primitive):
-      result = `${primitive}_hmr_pipe_identity_${uuid}`;
+      result = `${primitive}_${uuid}`;
       break;
     case isNumber(primitive):
       result = primitive + 1;
