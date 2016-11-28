@@ -118,7 +118,7 @@ export class SidebarController {
 
 ### modal
 
-+ template => 'html string', like `html-loader`, especially, the template filename should endsWith `modal.html`, because `route template`, `modal template` has different update strategy, and i can't identify which one should take effect.
++ template => `html string`, like `html-loader`, especially, the template filename should endsWith `modal.html`, because `route template`, `modal template` has different update strategy, and i can't identify which one should take effect.
 + controller => `*ModalController`, not string token, especially, the controller filename should endsWith `modal.controller.js`, the same reason as above.
 
 ```javascript
@@ -145,6 +145,26 @@ export class TodoController {
   }
 }
 ```
+
+### tricky
+when update `controller`, `ng-hmr` need strategy to determine whether override the specific field or just leave it, the default strategy extreme simple: 
+
+```javascript
+/**
+ * @description - determine whether ng-hmr should override the field, true for yes ,false for no
+ *
+ * @param {string} field
+ * @param {object} prev 
+ * @param {object} next
+ */
+function shouldFieldUpdate(field, prev, next) {
+  let toString = Object.prototype.toString;
+
+  return toString.call(prev) !== toString.call(next);
+}
+```
+
+you can mount your own strategy implement onto the controller. please note here,  `ng-hmr` already handle `$injector dependency` override, so never consider about `dependencies`, just think about normal field.
 
 ## demo 
 please see [angular-boilerplate-webpack](https://github.com/bornkiller/angular-boilerplate-webpack) for HMR attempt.
