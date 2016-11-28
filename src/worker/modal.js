@@ -66,13 +66,13 @@ export function adoptNextModalController($injector, controller) {
       $timeout(() => {
         nextVM = $injector.instantiate(controller, {...locals, $scope: scope, $uibModalInstance: $uibModalInstance});
 
-        translateNextVM(prevVM, nextVM);
+        translateNextVM(prevVM, nextVM, $injector);
       }, 1);
     });
   } else {
     nextVM = $injector.instantiate(controller, {$scope: scope, $uibModalInstance: $uibModalInstance});
 
-    translateNextVM(prevVM, nextVM);
+    translateNextVM(prevVM, nextVM, $injector);
   }
 
   scope.$apply();

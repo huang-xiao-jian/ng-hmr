@@ -69,7 +69,7 @@ export function adoptNextController($injector, controller) {
   let prevVM = scope.vm;
   let nextVM = $injector.instantiate(controller, {$scope: scope});
 
-  translateNextVM(prevVM, nextVM);
+  translateNextVM(prevVM, nextVM, $injector);
 
   scope.$apply();
 }

@@ -5,7 +5,7 @@
 
 'use strict';
 
-import { chain, has, isString, isBoolean, isNumber } from 'lodash';
+import { keys, has, uniq, isString, isBoolean, isNumber } from 'lodash';
 
 /**
  * @description - ng-hmr share regular capture reg
@@ -24,7 +24,7 @@ export const hmrIdentityCaptureReg = /^<!--\s@ng_hmr_identity\s(.+)\s-->/;
 export function iterateViewValue(primitive) {
   let result;
   let uuid = Math.random().toString(36).substr(2, 9);
-  
+
   switch (true) {
     case isString(primitive):
       result = `${primitive}_${uuid}`;
@@ -38,7 +38,7 @@ export function iterateViewValue(primitive) {
     default:
       result = primitive;
   }
-  
+
   return result;
 }
 
@@ -52,18 +52,18 @@ export function decorateModalOptions($hmrProvider, options) {
   let { template, controller } = options;
   let [, identity] = hmrIdentityCaptureReg.exec(template);
   let middleTemplate = $hmrProvider.modalStorage.get(identity) || template;
-  
-  
+
+
   if (!controller) {
     return {
       ...options,
       template: `${middleTemplate} \n <aside class="${identity}" style="display: none">@ng_hmr_identity</aside>`
     };
   }
-  
+
   let ctrlIdentity = controller.ng_hmr_identity;
   let nextController = $hmrProvider.modalStorage.get(ctrlIdentity) || controller;
-  
+
   return {
     ...options,
     template: `${middleTemplate} \n <aside class="${identity} ${ctrlIdentity}" style="display: none">@ng_hmr_identity</aside>`,
@@ -86,22 +86,60 @@ export function decorateRouteTemplate(identity, controller) {
 }
 
 /**
+ * @description - judge whether the field should update
+ *
+ * @param {string} field
+ * @param {*} prev
+ * @param {*} next
+ */
+export function shouldFieldUpdate(field, prev, next) {
+  let toString = Object.prototype.toString;
+
+  return !prev || toString.call(prev) !== toString.call(next);
+}
+
+/**
  * @description - active controller vm swap
  *
  * @param {object} prevVM
  * @param {object} nextVM
+ * @param {object} $injector
  */
-export function translateNextVM(prevVM, nextVM) {
-  let toString = Object.prototype.toString;
-  
+export function translateNextVM(prevVM, nextVM, $injector) {
   // 假设所有关联属性在constructor内部声明,变量类型不变
-  chain(nextVM).keys().value().forEach(key => {
-    if (!has(prevVM, key) || toString.call(prevVM[key]) !== toString.call(nextVM[key])) {
-      prevVM[key] = nextVM[key];
+  let prevVMKeys = keys(prevVM);
+  let nextVMKeys = keys(nextVM);
+  let VMKeys = uniq([...prevVMKeys, ...nextVMKeys]);
+
+  VMKeys.forEach(field => {
+    let prev = prevVM[field];
+    let next = nextVM[field];
+
+    switch (true) {
+      case has(prevVM, field) && !has(nextVM, field):
+        Reflect.deleteProperty(prevVM, field);
+        break;
+      case Reflect.has(nextVM, 'shouldFieldUpdate') && nextVM.shouldFieldUpdate(field, prev, next):
+        prevVM[field] = nextVM[field];
+        break;
+      case $injector.has(field) || shouldFieldUpdate(field, prev, next):
+        prevVM[field] = nextVM[field];
+        break;
+      default:
+        // eslint-disable-next-line no-console, angular/log
+        console.log(`[NG_HMR] Unable determine should ${nextVM.constructor.name} ==> ${field} update, manual update please define shouldFieldUpdate method`);
     }
   });
-  
-  chain(Object.getOwnPropertyNames(nextVM.__proto__)).filter(key => key !== 'constructor').value().forEach(key => {
-    prevVM.__proto__[key] = nextVM.__proto__[key];
+
+  let prevVMMethod = Object.getOwnPropertyNames(prevVM.__proto__).filter(key => key !== 'constructor');
+  let nextVMMethod = Object.getOwnPropertyNames(nextVM.__proto__).filter(key => key !== 'constructor');
+  let VMMethod = uniq([...prevVMMethod, ...nextVMMethod]);
+
+  VMMethod.forEach((field) => {
+    if (Reflect.has(nextVM.__proto__, field)) {
+      Reflect.set(prevVM.__proto__, field, Reflect.get(nextVM.__proto__, field));
+    } else {
+      Reflect.deleteProperty(prevVM.__proto__, field);
+    }
   });
 }
