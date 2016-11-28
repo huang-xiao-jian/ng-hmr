@@ -86,16 +86,16 @@ export function decorateRouteTemplate(identity, controller) {
 }
 
 /**
- * @description - judge whether the field should update
+ * @description - determine whether ng-hmr should override the field, true for yes ,false for no
  *
  * @param {string} field
- * @param {*} prev
- * @param {*} next
+ * @param {object} prev
+ * @param {object} next
  */
 export function shouldFieldUpdate(field, prev, next) {
   let toString = Object.prototype.toString;
 
-  return !prev || toString.call(prev) !== toString.call(next);
+  return toString.call(prev) !== toString.call(next);
 }
 
 /**
@@ -119,10 +119,13 @@ export function translateNextVM(prevVM, nextVM, $injector) {
       case has(prevVM, field) && !has(nextVM, field):
         Reflect.deleteProperty(prevVM, field);
         break;
+      case $injector.has(field):
+        prevVM[field] = nextVM[field];
+        break;
       case Reflect.has(nextVM, 'shouldFieldUpdate') && nextVM.shouldFieldUpdate(field, prev, next):
         prevVM[field] = nextVM[field];
         break;
-      case $injector.has(field) || shouldFieldUpdate(field, prev, next):
+      case shouldFieldUpdate(field, prev, next):
         prevVM[field] = nextVM[field];
         break;
       default:
