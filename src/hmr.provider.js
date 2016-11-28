@@ -40,6 +40,9 @@ export /* @ngInject */ function HMRProvider() {
      * @param {function} implement - angular component next implement
      */
     function hmrOnChange(category, token, implement) {
+      // controller, template never need token, just shift original implement
+      let nextImplement = token;
+
       switch (category) {
         case 'Filter':
           InstanceStorage.set(`${token}Filter`, $injector.invoke(implement));
@@ -51,19 +54,19 @@ export /* @ngInject */ function HMRProvider() {
           InstanceStorage.set(token, $injector.invoke(implement));
           break;
         case 'Controller':
-          ControllerStorage.set(token, implement);
+          ControllerStorage.set(token, nextImplement);
           break;
         case 'RouteTemplate':
-          RouteStorage.set(hmrIdentityCaptureReg.exec(implement)[1], implement);
+          RouteStorage.set(hmrIdentityCaptureReg.exec(nextImplement)[1], nextImplement);
           break;
         case 'RouteController':
-          RouteStorage.set(implement.ng_hmr_identity, implement);
+          RouteStorage.set(nextImplement.ng_hmr_identity, nextImplement);
           break;
         case 'ModalTemplate':
-          ModalStorage.set(hmrIdentityCaptureReg.exec(implement)[1], implement);
+          ModalStorage.set(hmrIdentityCaptureReg.exec(nextImplement)[1], nextImplement);
           break;
         case 'ModalController':
-          ModalStorage.set(implement.ng_hmr_identity, implement);
+          ModalStorage.set(nextImplement.ng_hmr_identity, nextImplement);
           break;
         default:
           // eslint-disable-next-line no-console, angular/log
