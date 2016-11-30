@@ -1,6 +1,6 @@
 {
   "name": "ng-hmr",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "cooperate with ng-hot-loader, make NG HMR possible",
   "main": "dist/ng-hmr.js",
   "jsnext:main": "index.js",
