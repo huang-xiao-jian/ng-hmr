@@ -10,7 +10,7 @@ import { keys, has, uniq, isString, isBoolean, isNumber } from 'lodash';
 /**
  * @description - ng-hmr share regular capture reg
  */
-export const hmrIdentityCaptureReg = /^<!--\s@ng_hmr_identity\s(.+)\s-->/;
+export const hmrIdentityCaptureReg = /<!--\s@ng_hmr_identity\s(.+)\s-->/;
 
 /**
  * @description
@@ -122,8 +122,8 @@ export function translateNextVM(prevVM, nextVM, $injector) {
       case $injector.has(field):
         prevVM[field] = nextVM[field];
         break;
-      case Reflect.has(nextVM, 'shouldFieldUpdate') && nextVM.shouldFieldUpdate(field, prev, next):
-        prevVM[field] = nextVM[field];
+      case Reflect.has(nextVM, 'shouldFieldUpdate'):
+        nextVM.shouldFieldUpdate(field, prev, next) && (prevVM[field] = nextVM[field]);
         break;
       case shouldFieldUpdate(field, prev, next):
         prevVM[field] = nextVM[field];
