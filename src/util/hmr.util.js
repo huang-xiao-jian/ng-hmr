@@ -13,6 +13,31 @@ import { keys, has, uniq, isString, isBoolean, isNumber } from 'lodash';
 export const hmrIdentityCaptureReg = /<!--\s@ng_hmr_identity\s(.+)\s-->/;
 
 /**
+ * @description - classify template category, route template or modal template
+ *
+ * @param {string} template - next template markup
+ *
+ * @return {boolean}
+ */
+export function isModalTemplate(template) {
+  let [, identity] = hmrIdentityCaptureReg.exec(template);
+  
+  return identity.endsWith('modal-html');
+}
+
+/**
+ * @description - classify controller category, route controller or modal controller
+ *
+ * @param {function} $injector - Angular DI $injector
+ * @param {function} implement - next controller implement
+ *
+ * @return {boolean}
+ */
+export function isModalController($injector, implement) {
+  return $injector.annotate(implement).includes('$uibModalInstance');
+}
+
+/**
  * @description
  * - trigger pipe re-calculation
  * - object or array input will check output each $digest, while primitive not
@@ -51,7 +76,7 @@ export function iterateViewValue(primitive) {
 export function decorateModalOptions($hmrProvider, options) {
   let { template, controller } = options;
   let [, identity] = hmrIdentityCaptureReg.exec(template);
-  let middleTemplate = $hmrProvider.modalStorage.get(identity) || template;
+  let middleTemplate = $hmrProvider.templateStorage.get(identity) || template;
 
 
   if (!controller) {
@@ -62,7 +87,7 @@ export function decorateModalOptions($hmrProvider, options) {
   }
 
   let ctrlIdentity = controller.ng_hmr_identity;
-  let nextController = $hmrProvider.modalStorage.get(ctrlIdentity) || controller;
+  let nextController = $hmrProvider.controllerStorage.get(ctrlIdentity) || controller;
 
   return {
     ...options,

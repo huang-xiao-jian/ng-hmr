@@ -31,7 +31,7 @@ export function adoptNextDirective($injector, token) {
   let markup = page.find('.ng-hmr-markup');
   let scope = page.scope();
   let identity = markup.data('templateIdentity');
-  let template = $hmr.routeStorage.get(identity);
+  let template = $hmr.templateStorage.get(identity);
   let middleware = $compile(template)(scope);
   let subViews = middleware.find('[ui-view]');
   let subViewSelectors;

@@ -31,9 +31,9 @@ export /* @ngInject */ function HMRModalDecorator($provide, $hmrProvider) {
         if (options.controller) {
           let identity = options.controller.ng_hmr_identity;
 
-          $hmrProvider.modalStorage.set(`${identity}_instance`, modalInstance);
+          $hmrProvider.controllerStorage.set(`${identity}_instance`, modalInstance);
 
-          options.resolve && $hmrProvider.modalStorage.set(`${identity}_resolve`, options.resolve);
+          options.resolve && $hmrProvider.controllerStorage.set(`${identity}_resolve`, options.resolve);
         }
 
         return modalInstance;

@@ -17,7 +17,9 @@ export function adoptNextModalTemplate($injector, template) {
   let [, identity] = hmrIdentityCaptureReg.exec(template);
   let selector = `.${identity}`;
   let markup = angular.element(selector);
-
+  
+  console.log('hello world');
+  
   if (!markup.length) {
     // eslint-disable-next-line no-console, angular/log
     console.log(`[NG_HMR] the ${selector} not active, declare already updated...`);
@@ -45,8 +47,8 @@ export function adoptNextModalController($injector, controller) {
   let $timeout = $injector.get('$timeout');
   let identity = controller.ng_hmr_identity;
   let selector = `.${identity}`;
-  let $uibModalInstance = $hmr.modalStorage.get(`${identity}_instance`);
-  let resolve = $hmr.modalStorage.get(`${identity}_resolve`);
+  let $uibModalInstance = $hmr.controllerStorage.get(`${identity}_instance`);
+  let resolve = $hmr.controllerStorage.get(`${identity}_resolve`);
   let markup = angular.element(selector);
 
   if (!markup.length) {

@@ -21,16 +21,16 @@ export /* @ngInject */ function HMRRouteConfig($stateProvider, $hmrProvider) {
             let [, identity] = hmrIdentityCaptureReg.exec(value);
             
             // init route template, just for directive HMR template identify convenience
-            !$hmrProvider.routeStorage.has(identity) && $hmrProvider.routeStorage.set(identity, value);
+            !$hmrProvider.templateStorage.has(identity) && $hmrProvider.templateStorage.set(identity, value);
             
-            let template = $hmrProvider.routeStorage.get(identity);
+            let template = $hmrProvider.templateStorage.get(identity);
             let controller = Reflect.get(target, 'controller');
             
             value = `${template} \n ${decorateRouteTemplate(identity, controller)}`;
           }
           
           if (value && key === 'controller') {
-            value = $hmrProvider.routeStorage.get(value.ng_hmr_identity) || value;
+            value = $hmrProvider.controllerStorage.get(value.ng_hmr_identity) || value;
           }
           
           return value;
