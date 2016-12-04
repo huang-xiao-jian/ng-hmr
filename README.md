@@ -2,7 +2,7 @@
 cooperate with ng-hot-loader, make NG HMR possible, no suggest for legacy project
 
 ## pre-requirement
-Current implement depend on `lodash`, `jquery`, `angular-ui-router`, `angular-ui-bootstrap`, so you have to install them all. also, browser should support ES6 `Proxy`， `Reflect`. I will try to find better solution after HMR work as expected.
+Current implement depend on `lodash`, `jquery`, `angular-ui-router`, `angular-ui-bootstrap`, so you have to install them all. also, browser should support ES6 `Proxy`， `Reflect`, `Map`. I will try to find better solution after HMR work as expected.
 
 + `angular` - global variable `angular`, test version >= 1.5.8
 + `angular-ui-router` - test version >= 1.0.0
@@ -60,34 +60,79 @@ export /* @ngInject */ function promptFactory() {
 }
 ```
 
-### route
-
-+ template => `html string`, like `html-loader`
-+ controller => `*Controller`, actual implement, not string token
+### module
++ template => `html string`, like `html-loader`. `route template`, `modal template` has different HMR strategy, you have to use `modal.html` as modal template postfix.
++ controller => `*ModalController`, class or just function, not string token.  `route controller`, `modal controller` has different HMR strategy, you have to use `modal.controller.js` as modal controller postfix.
 
 ```javascript
 /**
- * @description - layout router config
+ * @description - share module combine several controller, filter, service, directive
  * @author - bornkiller <hjj491229492@hotmail.com>
  */
+'use strict';
 
-import { TodoController } from './todo.controller';
+// share module dependency
+import { postfixFilter } from './filter/postfix.filter';
+import { promptFactory } from './service/prompt.factory';
+import { FighterService } from './service/fighter.service';
+import { validateCaptchaDirective } from './directive/validate.directive';
 
-// router rule declare
-export const TodoRoute = [
+// share module route dependency
+import lovePageTemplate from './template/love.html';
+import todoPageTemplate from './template/todo.html';
+import { LoveController } from './controller/love.controller';
+import { TodoController } from './controller/todo.controller';
+
+// share module name
+const SHARE_MODULE = 'app.share';
+
+// share module route
+const ShareRoute = [
+  {
+    name: 'application.love',
+    url: '/love',
+    views: {
+      'page': {
+        template: lovePageTemplate,
+        controller: LoveController,
+        controllerAs: 'vm'
+      }
+    }
+  },
   {
     name: 'application.todo',
     url: '/todo',
     views: {
       'page': {
-        template: require('./todo.html'),
+        template: todoPageTemplate,
         controller: TodoController,
         controllerAs: 'vm'
       }
     }
   }
 ];
+
+/**
+ * @description - never declare any dependency here, because dependency should declare into root module
+ */
+angular.module(SHARE_MODULE, [])
+  .filter('bkPostfix', postfixFilter)
+  .factory('bkPrompt', promptFactory)
+  .service('bkFighter', FighterService)
+  .directive('bkValidateCaptcha', validateCaptchaDirective)
+  // eslint-disable-next-line angular/di
+  .config(['$stateProvider', function ($stateProvider) {
+    ShareRoute.forEach((route) => {
+      $stateProvider.state(route);
+    });
+  }]);
+
+// just export module name for root module
+export { SHARE_MODULE };
 ```
+
+### controller
+implement controller with `ES6 Class`.
 
 ```javascript
 export class SidebarController {
@@ -116,42 +161,12 @@ export class SidebarController {
 }
 ```
 
-### modal
-
-+ template => `html string`, like `html-loader`, especially, the template filename should endsWith `modal.html`, because `route template`, `modal template` has different update strategy, and i can't identify which one should take effect.
-+ controller => `*ModalController`, not string token, especially, the controller filename should endsWith `modal.controller.js`, the same reason as above.
-
-```javascript
-/**
- * @description - collection feature controller
- * @author - bornkiller <hjj491229492@hotmail.com>
- */
-'use strict';
-
-import { TodoModalController } from './todo.modal.controller';
-
-/* @ngInject */
-export class TodoController {
-  constructor($q, $scope, $ngRedux, $uibModal) {
-    this.$uibModal = $uibModal;
-  }
-
-  displayPoemModal() {
-    this.$uibModal.open({
-      template: require('./todo.modal.html'),
-      controller: TodoModalController,
-      controllerAs: 'vm'
-    });
-  }
-}
-```
-
 ### tricky
-when update `controller`, `ng-hmr` need strategy to determine whether override the specific field or just leave it, the default strategy extreme simple: 
+when update `controller`, `ng-hmr` need strategy to determine whether update the specific field or just leave it, the default strategy extreme simple: 
 
 ```javascript
 /**
- * @description - determine whether ng-hmr should override the field, true for yes ,false for no
+ * @description - determine whether ng-hmr should update the field, true for yes ,false for no
  *
  * @param {string} field
  * @param {object} prev 
@@ -164,7 +179,7 @@ function shouldFieldUpdate(field, prev, next) {
 }
 ```
 
-you can mount your own strategy implement onto the controller. please note here,  `ng-hmr` already handle `$injector dependency` override, so never consider about `dependencies`, just think about normal field.
+you can mount your own strategy implement onto the controller. please note here, `ng-hmr` already handle `dependency inject` override, so never consider about `dependencies`, just think about normal field.
 
 ## demo 
 please see [angular-boilerplate-webpack](https://github.com/bornkiller/angular-boilerplate-webpack) for HMR attempt.
