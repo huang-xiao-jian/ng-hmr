@@ -7,8 +7,8 @@
 
 import { adoptNextFilter } from './worker/filter';
 import { adoptNextDirective } from './worker/directive';
-import { adoptNextTemplate, adoptNextController} from './worker/route';
-import { adoptNextModalTemplate, adoptNextModalController } from './worker/modal';
+import { adoptNextTemplate, adoptNextModalTemplate } from './worker/template';
+import { adoptNextController, adoptNextModalController } from './worker/controller';
 import { hmrIdentityCaptureReg, isModalTemplate, isModalController } from './util/hmr.util';
 
 export /* @ngInject */ function HMRProvider() {
@@ -22,7 +22,7 @@ export /* @ngInject */ function HMRProvider() {
   this.instanceStorage = InstanceStorage;
   this.templateStorage = TemplateStorage;
   this.controllerStorage = ControllerStorage;
-
+  
   this.$get = ['$injector', '$rootScope', function ($injector, $rootScope) {
     return {
       hmrOnChange,
@@ -31,7 +31,7 @@ export /* @ngInject */ function HMRProvider() {
       templateStorage: TemplateStorage,
       controllerStorage: ControllerStorage
     };
-
+    
     /**
      * @description - notify storage receive latest component implement
      *
@@ -64,7 +64,7 @@ export /* @ngInject */ function HMRProvider() {
           console.warn('feature %s / %s maybe not support now', token, category);
       }
     }
-
+    
     /**
      * @description - take hot effect, filter need re-compile, while factory, service not
      *
