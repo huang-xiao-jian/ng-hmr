@@ -31,7 +31,7 @@ export function adoptNextTemplate($injector, template) {
   let middleware = $compile(template)(scope);
   let subViews = middleware.find('[ui-view]');
   let subViewSelectors;
-  
+
   if (subViews.length) {
     subViewSelectors = subViews.map(function () {
       return '[ui-view=' + angular.element(this).attr('ui-view') + ']';
@@ -43,7 +43,9 @@ export function adoptNextTemplate($injector, template) {
       return prev;
     }, middleware);
   }
-  
+
+  // trigger model binding
+  middleware.scope().$apply();
   target.empty().append(middleware).append(markup);
 }
 
