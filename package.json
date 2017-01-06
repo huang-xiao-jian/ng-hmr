@@ -1,10 +1,11 @@
 {
   "name": "ng-hmr",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "cooperate with ng-hot-loader, make NG HMR possible",
   "main": "dist/ng-hmr.js",
   "jsnext:main": "index.js",
   "scripts": {
+    "prepublish": "rollup -c rollup.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
