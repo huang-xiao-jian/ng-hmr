@@ -67,11 +67,23 @@ export /* @ngInject */ function HMRInjectorDecorator($provide, $hmrProvider) {
       }
       
       let instance = previous(name);
+
+      // decorate redux middleware only
+      if (name.endsWith('Middleware')) {
+        return store => next => action => {
+          let hmrInstance = $hmrProvider.instanceStorage.get(name);
+          return hmrInstance ? hmrInstance(store)(next)(action) : instance(store)(next)(action);
+        };
+      }
+
       let handler = {
         get(target, key) {
           let hmrInstance = $hmrProvider.instanceStorage.get(name);
-          
           return hmrInstance ? Reflect.get(hmrInstance, key) : Reflect.get(target, key);
+        },
+        apply(target, context, args) {
+          let hmrInstance = $hmrProvider.instanceStorage.get(name);
+          return hmrInstance ? Reflect.apply(hmrInstance, context, args) : Reflect.apply(target, context, args);
         }
       };
       
